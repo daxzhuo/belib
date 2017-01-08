@@ -1,9 +1,10 @@
 #include "tcp_server.h"
 
+namespace network {
 
 Acceptor::Acceptor(EventLoop* loop, InetAddress& addr)
   : loop_(loop), acceptSocket(util::createNonblockingOrDie()),
-    acceptChan_(loop, std::move(acceptSocket)),
+    acceptChan_(loop, socket_.Fd()),
     listenning_(false) {
   acceptSocket_.setReuseAddr(true);
   acceptSocket_.bind(addr);
@@ -28,4 +29,4 @@ void Acceptor::handleRead() {
   }
 }
   
-
+} // network

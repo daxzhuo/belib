@@ -1,5 +1,7 @@
 #include <functional>
 
+namespace {
+
 class Acceptor {
 public:
   typedef std::function<void(int sockfd, InetAddress& addr)> NewConnCb;
@@ -11,10 +13,16 @@ private:
   void handleRead();
 
   EventLoop* loop_;
-  Socket listen	Socket;
+  TCPSocket socket_;
   Channel acceptChan_;
   NewConnCb newConnCb_;
   bool listenning_;
 };
 
+class TcpServer {
+public:
+private:
+  void OnAcceptCallback
+};
 
+}
