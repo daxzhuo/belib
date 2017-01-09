@@ -7,23 +7,28 @@ class EndPoint;
 
 class TCPSocket {
 public:
+  TCPSocket(int fd) : socket_(fd) {}
+  TCPSocket(Socket&& s);
   int Bind(const EndPoint& address);
   int Listen(int backlog);
-  int Accept(std::unique_ptr<TCPSocket>* socket,
-             EndPoint* address,
-             const CompletionCallback& callback);
+  int Accept(TCPSocket* socket,
+             EndPoint* address);
   bool IsConnected() const;
-  int Read(Buffer* buf, int buf_len, const CompletionCallback);
-  int Write(Buffer* buf, int buf_len, const CompletionCallback);
+  int Read(Buffer* buf, int buf_len);
+  int Write(Buffer* buf, int buf_len);
 
   int SetAddressReuse(bool allow);
   int SetKeepAlive(bool enable, int delay);
   int SetNoDelay(bool no_delay);
 
   void Close();
+  void ShutDown();
 
 private:
-  int fd_;
+  Socket socket_;
+  // TODO: support fast open
 };
+
+
 
 } // network
