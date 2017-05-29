@@ -216,6 +216,6 @@ logging::Logger(logging::Logger::INFO, __FILE__, __LINE__, __VA_ARGS__); } while
 
 #define LOG(LEVEL) logging::Logger(LEVEL)                       \
   ::logging::Logger(                                            \
-    ::logging::LOGLEVEL_##LEVEL, __FILE__, __LINE__)
+    ::logging::LOGLEVEL_##LEVEL, __FILE__, __LINE__).stream()
 
 #endif
