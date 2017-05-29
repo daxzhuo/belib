@@ -3,6 +3,7 @@
 #define NETWORK_POLLER_H_
 
 #include <unordered_map>
+#include <vector>
 
 namespace network {
 class EventLoop;

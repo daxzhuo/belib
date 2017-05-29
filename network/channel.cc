@@ -1,4 +1,5 @@
 #include "channel.h"
+#include <stdio.h>
 #include "event_loop.h"
 #include <sys/epoll.h>
 namespace network {
@@ -23,7 +24,7 @@ void Channel::Register() {
 void Channel::HandleEvent() {
 	
 	if (revents_ & EPOLLERR) {
-
+		printf("Epoll error");
 	}
 	if (revents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
 		if (rcb_) rcb_();

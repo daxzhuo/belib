@@ -10,7 +10,6 @@ EventLoop* g_loop;
 
 void timeout() {
 	printf("time out!\n");
-	g_loop->StopLoop();
 }
 
 int main() {
@@ -23,10 +22,10 @@ int main() {
 
 	struct itimerspec howlong;
 	bzero(&howlong, sizeof(howlong));
-	howlong.it_value.tv_sec = 5;
+	howlong.it_value.tv_sec = 2;
 	::timerfd_settime(timerfd, 0, &howlong, NULL);
 
-	loop.StartLoop();
+	loop.Start();
 
-	::close(timerfd);
+	//::close(timerfd);
 }

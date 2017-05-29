@@ -13,20 +13,21 @@ class EventLoop
 {
 public:
 	EventLoop();
+	~EventLoop();
 
-
-	void StartLoop();
-	void StopLoop() { killed = true; }
+	void Start();
+	void Stop();
 
 	void AddChannel(Channel* ch);
 	void RemoveChannel(Channel* ch);
 	void UpdateChannel(Channel* ch);
 private:
 	typedef std::vector<Channel*> ActiveChannelList;
-	// unique_ptr ?
-	Poller* poller_;
+	const pid_t threadId_;
+	std::unique_ptr<Poller> poller_;
 	ActiveChannelList aclist_;
-	bool killed;
+	int wakeupFd_;
+	bool stopped_;
 };
 
 }

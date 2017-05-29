@@ -23,9 +23,9 @@ private:
 	void activateChannels(int numEvent, ActiveChannelList* aclist);
 	void update(int operation, Channel* ch);
 	typedef std::vector<struct epoll_event> EventList;
+    int epollfd_;
 	EventList events_;
-	int epollfd_;
-
+	
 	static const int kInitEventListSize = 16;
 };
 

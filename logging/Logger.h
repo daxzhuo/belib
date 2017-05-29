@@ -39,13 +39,13 @@ public:
   typedef std::function<void()> FlushFunc;
 
   enum LogLevel {
-    TRACE,
-    DEBUG,
-    INFO,
-    WARN,
-    ERROR,
-    FATAL,
-    NUM_LOG_LEVELS,
+    LOGLEVEL_TRACE,
+    LOGLEVEL_DEBUG,
+    LOGLEVEL_INFO,
+    LOGLEVEL_WARN,
+    LOGLEVEL_ERROR,
+    LOGLEVEL_FATAL,
+    LOGLEVEL_NUM_LOG_LEVELS,
   };
 
   static constexpr const char* LogLevelName[NUM_LOG_LEVELS] =
@@ -58,9 +58,34 @@ public:
   "FATAL",
   };
 
-  Logger(LogLevel level, const char *filename, 
-         int line, const char* format, ...);
+  class SourceFile {
+   public:
+    template <int N>
+    inline SourceFile(const char (&arr)[N]) 
+      : data_(arr), len_(N-1) {
+      const char* pslash = strrchr('/');
+      if (pslash) {
+        data_ = pslash + 1;
+        len_ = static_cast<int>(data_ - arr);
+      }
+    }
 
+    explicit SourceFile(const char* filename) : data_(filename) {
+      const char* pslash = strrchr('/');
+      if (pslash) {
+        data_ = pslash + 1;
+      }
+      len_ = static_cast<int>(strlen(data_));
+    }
+   private:
+    const char* data_;
+    int len_;
+  };
+
+  Logger(LogLevel level, SourceFile file, int line);
+  ~Logger();
+
+  StringStream& stream() { return stream_; }
 
   void Logv(const char* format, va_list ap);
 
@@ -77,17 +102,15 @@ public:
   static OutputFunc g_output;
   static FlushFunc g_flush;
 
-
+  typedef void (*OutputFunc)(const char* msg, int len);
+  typedef void (*FlushFunc)();
   static void setOutput(OutputFunc);
   static void setFlush(FlushFunc);
 
 private:
-
   LogLevel level_;
-  const char* sourcefile_;
+  SourceFile sourcefile_;
   int line_;
-  char buffer[500];
-
 };
 
 constexpr const char* Logger::LogLevelName[Logger::NUM_LOG_LEVELS];
@@ -95,17 +118,12 @@ Logger::LogLevel Logger::g_LogLevel;
 Logger::OutputFunc Logger::g_output = defaultOutput;
 Logger::FlushFunc Logger::g_flush = defaultFlush;
 
-Logger::Logger(LogLevel level, const char *filename, 
-              int line, const char* format, ...) 
-              : level_(level), line_(line) {
+Logger::Logger(LogLevel level, const char *filename, int line) 
+  : level_(level), filename_(filename), line_(line) {
 
     const char* pslash = strrchr(filename, '/');
     sourcefile_ = pslash ? pslash : filename;
 
-    va_list ap;
-    va_start(ap, format);
-    Logv(format, ap);
-    va_end(ap);
 }
 
 void Logger::Logv(const char* format, va_list ap) {
@@ -196,5 +214,8 @@ logging::Logger(logging::Logger::INFO, __FILE__, __LINE__, __VA_ARGS__); } while
 #define LOGERROR(...) logging::Logger(logging::Logger::ERROR, __FILE__, __LINE__, __VA_ARGS__)
 #define LOGFATAL(...) logging::Logger(logging::Logger::FATAL, __FILE__, __LINE__, __VA_ARGS__)
 
+#define LOG(LEVEL) logging::Logger(LEVEL)                       \
+  ::logging::Logger(                                            \
+    ::logging::LOGLEVEL_##LEVEL, __FILE__, __LINE__)
 
 #endif
