@@ -5,7 +5,7 @@
 #ifndef LOGGING_ASYNCLOGGING_H
 #define LOGGING_ASYNCLOGGING_H
 
-#include "Buffer.h"
+#include "buffer.h"
 #include "Condition.h"
 #include "Mutex.h"
 #include <memory>

@@ -1,6 +1,7 @@
 #include <sstream>
 
 class StringStream {
+ public:
   StringStream& operator<<(const std::string& value);
   StringStream& operator<<(const char* value);
   StringStream& operator<<(char value);
@@ -14,5 +15,5 @@ class StringStream {
   StringStream& operator<<(void* value);
  private:
   Buffer buffer_;
-  
+  Impl impl_;
 };
