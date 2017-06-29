@@ -7,8 +7,9 @@
 
 namespace network {
 
-Epoll::Epoll(EventLoop* el) : Poller(el), epollfd_(::epoll_create1(EPOLL_CLOEXEC)),
-															events_(kInitEventListSize) {}
+Epoll::Epoll(EventLoop* el) 
+  : Poller(el), epollfd_(::epoll_create1(EPOLL_CLOEXEC)),
+    events_(kInitEventListSize) {}
 
 void Epoll::update(int operation, Channel* ch) {
 	struct epoll_event event;
@@ -46,8 +47,7 @@ void Epoll::UpdateChannel(Channel* ch) {
 
 void Epoll::Poll(int ms, ActiveChannelList* aclist) {
 	int numEvent = ::epoll_wait(epollfd_, events_.data(),
-							 static_cast<int>(events_.size()),
-							 ms);
+				 static_cast<int>(events_.size()), ms);
 	int savedErrno = errno;
 	if (numEvent > 0) {
 		activateChannels(numEvent, aclist);
