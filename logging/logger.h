@@ -62,22 +62,6 @@ class FixedBuffer {
 }
 }
 
-void defaultOutput(const char* msg, int len)
-{
-  fwrite(msg, 1, len, stdout);
-}
-
-void defaultFlush()
-{
-  fflush(stdout);
-}
-
-uint64_t gettid() {
-  pthread_t tid =  pthread_self();
-  uint64_t thread_id = 0;
-  memcpy(&thread_id, &tid, std::min(sizeof(thread_id), sizeof(tid)));
-  return thread_id;
-}
 
 class Logger {
 public:
@@ -159,7 +143,8 @@ private:
   class Impl {
    public:
     typedef Logger::LogLevel LogLevel;
-    Impl(LogLevel level, int old_errno, const SourceFile& file, int line);
+    Impl(LogLevel level, int savedErrno, const SourceFile& file, int line);
+    Impl(LogLevel level, const SourceFile& file, int line)
     void formatTime();
     void finish();
 

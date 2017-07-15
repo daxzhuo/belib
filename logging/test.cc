@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <pthread.h>
-#include "Logger.h"
-#include "AsyncLogging.h"
+#include "logger.h"
+#include "async_logging.h"
 #define NTHREAD 4
 
 void* logthread(void* arg) {
