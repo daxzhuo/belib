@@ -16,4 +16,5 @@ void FixedBuffer<SIZE>::cookieEnd() {
         sprintf(buffer, "%uld", v);
         operator<<(buffer);
     }
+
 } // logging

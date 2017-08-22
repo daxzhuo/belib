@@ -7,7 +7,6 @@ namespace logging {
 __thread time_t t_lastSecond;
 __thread char t_time[32];
 
-const int kMicroSecondsPerSecond = 1000 * 1000;
 
 uint64_t gettid() {
   pthread_t tid = pthread_self();
@@ -15,11 +14,21 @@ uint64_t gettid() {
   memcpy(&thread_id, &tid, std::min(sizeof(thread_id), sizeof(tid)));
   return thread_id;
 }
+    Logger::LogLevel initLogLevel()
+    {
 
-inline LogStream& operator<<(LogStream& s, const Logger::SourceFile& v) {
-  s.append(v.data_, v.len_);
-  return s;
-}
+        return Logger::LOGLEVEL_INFO;
+    }
+
+    Logger::LogLevel g_logLevel = initLogLevel();
+    inline LogStream& operator<<(LogStream& s, const Logger::SourceFile& v) {
+      s.append(v.data_, v.len_);
+      return s;
+    }
+    void Logger::setLogLevel(Logger::LogLevel level)
+    {
+      g_logLevel = level;
+    }
 
 void Logger::Impl::formatTime() {
   timeval tv;
@@ -42,7 +51,7 @@ Logger::Impl::Impl(LogLevel level, const SourceFile& file, int line)
   : level_(level), basename_(file), line_(line) {
     formatTime();
     stream_ << gettid();
-    stream_ << LogLevelName[level];
+    stream_ << Logger::LogLevelName[level_];
 }
 
 //Logger::Logger(LogLevel level, int savedErrno, SourceFile& file, int line)
@@ -56,7 +65,17 @@ Logger::Logger(LogLevel level, SourceFile file, int line)
 Logger::~Logger() {
   impl_.finish();
 }
+    void defaultOutput(const char* msg, int len)
+    {
+      fwrite(msg, 1, len, stdout);
+    }
 
+    void defaultFlush()
+    {
+      fflush(stdout);
+    }
+    Logger::OutputFunc g_output = defaultOutput;
+    Logger::FlushFunc g_flush = defaultFlush;
 void Logger::Impl::finish() {
   stream_ << " - " << basename_ << ':' << line_ << '\n';
   const LogStream::Buffer& buf(stream_.buffer());
@@ -68,15 +87,16 @@ void Logger::Impl::finish() {
   }
 }
 
+    void Logger::setOutput(OutputFunc out)
+    {
+      g_output = out;
+    }
 
-void defaultOutput(const char* msg, int len)
-{
-  fwrite(msg, 1, len, stdout);
-}
+    void Logger::setFlush(FlushFunc flush)
+    {
+      g_flush = flush;
+    }
 
-void defaultFlush()
-{
-  fflush(stdout);
-}
+
 
 } // logging

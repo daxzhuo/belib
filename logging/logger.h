@@ -67,7 +67,7 @@ public:
 
 
   static LogLevel logLevel();
-
+    void setLogLevel(LogLevel level);
   static OutputFunc g_output;
   static FlushFunc g_flush;
 
@@ -95,7 +95,7 @@ private:
 };
 
 extern Logger::LogLevel g_LogLevel;
-Logger::LogLevel Logger::logLevel() {
+inline Logger::LogLevel Logger::logLevel() {
     return g_LogLevel;
 }
 
