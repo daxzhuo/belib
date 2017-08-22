@@ -7,28 +7,32 @@ namespace logging {
 __thread time_t t_lastSecond;
 __thread char t_time[32];
 
-
 uint64_t gettid() {
   pthread_t tid = pthread_self();
   uint64_t thread_id = 0;
   memcpy(&thread_id, &tid, std::min(sizeof(thread_id), sizeof(tid)));
   return thread_id;
 }
-    Logger::LogLevel initLogLevel()
-    {
 
-        return Logger::LOGLEVEL_INFO;
-    }
+static constexpr const char *LogLevelName[Logger::LOGLEVEL_NUM_LOG_LEVELS] = {
+      "TRACE", "DEBUG", "INFO ", "WARN ", "ERROR", "FATAL",
+  };
 
-    Logger::LogLevel g_logLevel = initLogLevel();
-    inline LogStream& operator<<(LogStream& s, const Logger::SourceFile& v) {
-      s.append(v.data_, v.len_);
-      return s;
-    }
-    void Logger::setLogLevel(Logger::LogLevel level)
-    {
-      g_logLevel = level;
-    }
+Logger::LogLevel initLogLevel() { return Logger::LOGLEVEL_INFO; }
+
+Logger::LogLevel g_logLevel = initLogLevel();
+inline LogStream &operator<<(LogStream &s, const Logger::SourceFile &v) {
+  s.append(v.data_, v.len_);
+  return s;
+}
+void Logger::setLogLevel(Logger::LogLevel level) { g_logLevel = level; }
+
+void defaultOutput(const char *msg, int len) { fwrite(msg, 1, len, stdout); }
+
+void defaultFlush() { fflush(stdout); }
+Logger::OutputFunc g_output = defaultOutput;
+Logger::FlushFunc g_flush = defaultFlush;
+
 
 void Logger::Impl::formatTime() {
   timeval tv;
@@ -38,65 +42,53 @@ void Logger::Impl::formatTime() {
     t_lastSecond = seconds;
     struct tm tm_time;
     ::localtime_r(&seconds, &tm_time);
-    int len = snprintf(t_time, sizeof t_time, "%4d%02d%02d %02d:%02d:%02d",
-      tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-      tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
-    assert(len == 17); (void)len;
+    int len =
+        snprintf(t_time, sizeof t_time, "%4d%02d%02d %02d:%02d:%02d",
+                 tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
+                 tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
+    assert(len == 17);
+    (void)len;
   }
-  ::snprintf(t_time+17, sizeof(t_time) - 17, ".%06d", microSeconds);
-  stream_ << string(t_time, 17+7);
+  ::snprintf(t_time + 17, sizeof(t_time) - 17, ".%06d", microSeconds);
+  stream_ << string(t_time, 17 + 7);
 }
 
-Logger::Impl::Impl(LogLevel level, const SourceFile& file, int line)
-  : level_(level), basename_(file), line_(line) {
-    formatTime();
-    stream_ << gettid();
-    stream_ << Logger::LogLevelName[level_];
+Logger::Impl::Impl(LogLevel level, const SourceFile &file, int line)
+    : level_(level), basename_(file), line_(line) {
+  formatTime();
+  stream_ << gettid();
+  stream_ << LogLevelName[level_];
 }
 
-//Logger::Logger(LogLevel level, int savedErrno, SourceFile& file, int line)
+// Logger::Logger(LogLevel level, int savedErrno, SourceFile& file, int line)
 //  : impl_(level, savedErrno, file, line) {
 //}
 
-Logger::Logger(LogLevel level, SourceFile file, int line) 
-  : impl_(level, file, line) {
-}
+Logger::Logger(LogLevel level, SourceFile file, int line)
+    : impl_(level, file, line) {}
 
-Logger::~Logger() {
-  impl_.finish();
-}
-    void defaultOutput(const char* msg, int len)
-    {
-      fwrite(msg, 1, len, stdout);
-    }
 
-    void defaultFlush()
-    {
-      fflush(stdout);
-    }
-    Logger::OutputFunc g_output = defaultOutput;
-    Logger::FlushFunc g_flush = defaultFlush;
+
+
 void Logger::Impl::finish() {
   stream_ << " - " << basename_ << ':' << line_ << '\n';
-  const LogStream::Buffer& buf(stream_.buffer());
-  g_output(buf.data(), buf.length());
-  if (level_ == LOGLEVEL_FATAL)
+}
+
+Logger::~Logger()
+{
+  impl_.finish();
+  const LogStream::Buffer& buf(stream().buffer());
+  logging::g_output(buf.data(), buf.length());
+  if (impl_.level_ == LOGLEVEL_FATAL)
   {
-    g_flush();
+    logging::g_flush();
     abort();
   }
 }
 
-    void Logger::setOutput(OutputFunc out)
-    {
-      g_output = out;
-    }
 
-    void Logger::setFlush(FlushFunc flush)
-    {
-      g_flush = flush;
-    }
+void Logger::setOutput(OutputFunc out) { logging::g_output = out; }
 
-
+void Logger::setFlush(FlushFunc flush) { logging::g_flush = flush; }
 
 } // logging

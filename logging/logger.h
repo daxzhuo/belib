@@ -1,22 +1,22 @@
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
+#include "log_stream.h"
 #include <algorithm>
+#include <assert.h>
 #include <functional>
-#include <stdio.h>
+#include <pthread.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
-#include <assert.h>
-#include <pthread.h>
 #include <sys/time.h>
 #include <time.h>
-#include "log_stream.h"
 
 namespace logging {
 class Logger {
 public:
-  typedef std::function<void(const char*,int)> OutputFunc;
+  typedef std::function<void(const char *, int)> OutputFunc;
   typedef std::function<void()> FlushFunc;
 
   enum LogLevel {
@@ -29,59 +29,47 @@ public:
     LOGLEVEL_NUM_LOG_LEVELS,
   };
 
-
-  static constexpr const char* LogLevelName[LOGLEVEL_NUM_LOG_LEVELS] = {
-    "TRACE",
-    "DEBUG",
-    "INFO ",
-    "WARN ",
-    "ERROR",
-    "FATAL",
-  };
+  
   class SourceFile {
-   public:
+  public:
     template <int N>
-    SourceFile(const char (&arr)[N])
-      : data_(arr), len_(N-1) {
-      const char* pslash = strrchr(arr, '/');
+    SourceFile(const char (&arr)[N]) : data_(arr), len_(N - 1) {
+      const char *pslash = strrchr(arr, '/');
       if (pslash) {
         data_ = pslash + 1;
         len_ = static_cast<int>(data_ - arr);
       }
     }
 
-    explicit SourceFile(const char* filename) : data_(filename) {
-      const char* pslash = strrchr(filename, '/');
+    explicit SourceFile(const char *filename) : data_(filename) {
+      const char *pslash = strrchr(filename, '/');
       if (pslash) {
         data_ = pslash + 1;
       }
       len_ = static_cast<int>(strlen(data_));
     }
-    const char* data_;
+    const char *data_;
     int len_;
   };
   Logger(LogLevel level, SourceFile file, int line);
   ~Logger();
 
-  LogStream& stream() { return impl_.stream_; }
-
+  LogStream &stream() { return impl_.stream_; }
 
   static LogLevel logLevel();
-    void setLogLevel(LogLevel level);
+  void setLogLevel(LogLevel level);
   static OutputFunc g_output;
   static FlushFunc g_flush;
 
-    static void setOutput(OutputFunc of);
-    static void setFlush(FlushFunc);
+  static void setOutput(OutputFunc of);
+  static void setFlush(FlushFunc);
 
 private:
-
-
   class Impl {
-   public:
+  public:
     typedef Logger::LogLevel LogLevel;
-    Impl(LogLevel level, int savedErrno, const SourceFile& file, int line);
-    Impl(LogLevel level, const SourceFile& file, int line);
+    Impl(LogLevel level, int savedErrno, const SourceFile &file, int line);
+    Impl(LogLevel level, const SourceFile &file, int line);
     void formatTime();
     void finish();
 
@@ -95,9 +83,7 @@ private:
 };
 
 extern Logger::LogLevel g_LogLevel;
-inline Logger::LogLevel Logger::logLevel() {
-    return g_LogLevel;
-}
+inline Logger::LogLevel Logger::logLevel() { return g_LogLevel; }
 
 // void Logger::Logv(const char* format, va_list ap) {
 //   const uint64_t thread_id = gettid();
@@ -164,10 +150,7 @@ inline Logger::LogLevel Logger::logLevel() {
 
 // }
 
-
 } // logging
-
-
 
 // TODO: make it well
 //#define LOGTRACE(...) do { if (logging::Logger::logLevel() <= logging::Logger::TRACE) \
@@ -176,11 +159,15 @@ inline Logger::LogLevel Logger::logLevel() {
 //#  logging::Logger(logging::Logger::DEBUG, __FILE__, __LINE__, __VA_ARGS__); } while (0)
 //#define LOGINFO(...) do { if (logging::Logger::logLevel() <= logging::Logger::INFO)\
 //logging::Logger(logging::Logger::INFO, __FILE__, __LINE__, __VA_ARGS__); } while(0)
-//#define LOGWARN(...) logging::Logger(logging::Logger::WARN, __FILE__, __LINE__, __VA_ARGS__)
-//#define LOGERROR(...) logging::Logger(logging::Logger::ERROR, __FILE__, __LINE__, __VA_ARGS__)
-//#define LOGFATAL(...) logging::Logger(logging::Logger::FATAL, __FILE__, __LINE__, __VA_ARGS__)
+//#define LOGWARN(...) logging::Logger(logging::Logger::WARN, __FILE__,
+//__LINE__, __VA_ARGS__)
+//#define LOGERROR(...) logging::Logger(logging::Logger::ERROR, __FILE__,
+//__LINE__, __VA_ARGS__)
+//#define LOGFATAL(...) logging::Logger(logging::Logger::FATAL, __FILE__,
+//__LINE__, __VA_ARGS__)
 
-#define LOG(LEVEL) ::logging::Logger(                      \
-    ::logging::Logger::LOGLEVEL_##LEVEL, __FILE__, __LINE__).stream()
+#define LOG(LEVEL)                                                             \
+  ::logging::Logger(::logging::Logger::LOGLEVEL_##LEVEL, __FILE__, __LINE__)   \
+      .stream()
 
 #endif

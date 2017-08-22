@@ -5,9 +5,9 @@
 #ifndef LOGGING_ASYNCLOGGING_H
 #define LOGGING_ASYNCLOGGING_H
 
-#include "buffer.h"
 #include "Condition.h"
 #include "Mutex.h"
+#include "buffer.h"
 #include <memory>
 #include <pthread.h>
 #include <stdio.h>
