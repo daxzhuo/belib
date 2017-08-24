@@ -14,7 +14,7 @@ void FixedBuffer<SIZE>::cookieEnd() {}
 } // internal
 LogStream &LogStream::operator<<(uint64_t v) {
   char buffer[20];
-  sprintf(buffer, "%uld", v);
+  sprintf(buffer, "%ld", v);
   operator<<(buffer);
 }
 

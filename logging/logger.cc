@@ -36,6 +36,7 @@ Logger::FlushFunc g_flush = defaultFlush;
 
 void Logger::Impl::formatTime() {
   timeval tv;
+  gettimeofday(&tv, NULL);
   time_t seconds = tv.tv_sec;
   suseconds_t microSeconds = tv.tv_usec;
   if (seconds != t_lastSecond) {
@@ -49,7 +50,7 @@ void Logger::Impl::formatTime() {
     assert(len == 17);
     (void)len;
   }
-  ::snprintf(t_time + 17, sizeof(t_time) - 17, ".%06d", microSeconds);
+  ::snprintf(t_time + 17, sizeof(t_time) - 17, ".%06ld", microSeconds);
   stream_ << string(t_time, 17 + 7);
 }
 
